@@ -1,0 +1,40 @@
+name: Sync Stripe to FreeAgent
+
+on:
+  schedule:
+    # Run daily at 9 AM UTC (adjust timezone as needed)
+    - cron: '0 7 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Stripe to FreeAgent sync
+        env:
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          FREEAGENT_CLIENT_ID: ${{ secrets.FREEAGENT_CLIENT_ID }}
+          FREEAGENT_CLIENT_SECRET: ${{ secrets.FREEAGENT_CLIENT_SECRET }}
+          FREEAGENT_BANK_ACCOUNT_ID: ${{ secrets.FREEAGENT_BANK_ACCOUNT_ID }}
+          FREEAGENT_REFRESH_TOKEN: ${{ secrets.FREEAGENT_REFRESH_TOKEN }}
+        run: ./gradlew run
+
+      - name: Upload CSV backup as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: freeagent-transactions-csv
+          path: output.csv
+          retention-days: 30
