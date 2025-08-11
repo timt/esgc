@@ -29,7 +29,7 @@ jobs:
           FREEAGENT_CLIENT_SECRET: ${{ secrets.FREEAGENT_CLIENT_SECRET }}
           FREEAGENT_BANK_ACCOUNT_ID: ${{ secrets.FREEAGENT_BANK_ACCOUNT_ID }}
           FREEAGENT_REFRESH_TOKEN: ${{ secrets.FREEAGENT_REFRESH_TOKEN }}
-        run: ./gradlew run
+        run: ./gradlew syncStripeToFreeAgent
 
       - name: Upload CSV backup as artifact
         if: always()

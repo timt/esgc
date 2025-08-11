@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.2.0"
+    application
 }
 
 group = "io.shaka"
@@ -22,4 +23,17 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(21)
+}
+
+// Custom tasks for different jobs
+tasks.register<JavaExec>("syncStripeToFreeAgent") {
+    group = "application"
+    description = "Sync Stripe transactions to FreeAgent"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("io.shaka.StripeToFreeAgentSyncKt")
+}
+
+// Keep run task pointing to the main sync job for backward compatibility
+tasks.named<JavaExec>("run") {
+    mainClass.set("io.shaka.StripeToFreeAgentSyncKt")
 }
