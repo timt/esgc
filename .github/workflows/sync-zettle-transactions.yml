@@ -1,8 +1,8 @@
-name: Sync Stripe to FreeAgent
+name: Sync Zettle to FreeAgent
 
 on:
   schedule:
-    # Run daily at 9 AM UTC (adjust timezone as needed)
+    # Run daily at 10 AM UTC (1 hour after Stripe sync)
     - cron: '0 7 * * *'
   workflow_dispatch: # Allow manual triggering
 
@@ -22,19 +22,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Run Stripe to FreeAgent sync
+      - name: Run Zettle to FreeAgent sync
         env:
-          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          ZETTLE_CLIENT_ID: ${{ secrets.ZETTLE_CLIENT_ID }}
+          ZETTLE_API_KEY: ${{ secrets.ZETTLE_API_KEY }}
           FREEAGENT_CLIENT_ID: ${{ secrets.FREEAGENT_CLIENT_ID }}
           FREEAGENT_CLIENT_SECRET: ${{ secrets.FREEAGENT_CLIENT_SECRET }}
-          FREEAGENT_BANK_ACCOUNT_ID: ${{ secrets.FREEAGENT_STRIPE_BANK_ACCOUNT_ID }}
+          FREEAGENT_BANK_ACCOUNT_ID: ${{ secrets.FREEAGENT_ZETTLE_BANK_ACCOUNT_ID }}
           FREEAGENT_REFRESH_TOKEN: ${{ secrets.FREEAGENT_REFRESH_TOKEN }}
-        run: ./gradlew syncStripeToFreeAgent
+        run: ./gradlew syncZettleToFreeAgent
 
-      - name: Upload CSV backup as artifact
+      - name: Upload transaction logs as artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: freeagent-transactions-csv
-          path: output.csv
+          name: zettle-transaction-logs
+          path: |
+            *.log
+            *.csv
           retention-days: 30
