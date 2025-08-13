@@ -33,6 +33,13 @@ tasks.register<JavaExec>("syncStripeToFreeAgent") {
     mainClass.set("io.shaka.StripeToFreeAgentSyncKt")
 }
 
+tasks.register<JavaExec>("syncZettleToFreeAgent") {
+    group = "application"
+    description = "Sync Zettle transactions to FreeAgent"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("io.shaka.ZettleToFreeAgentSyncKt")
+}
+
 tasks.register<JavaExec>("fetchZettleTransactions") {
     group = "application"
     description = "Fetch and display Zettle transactions"
