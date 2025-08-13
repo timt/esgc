@@ -33,6 +33,13 @@ tasks.register<JavaExec>("syncStripeToFreeAgent") {
     mainClass.set("io.shaka.StripeToFreeAgentSyncKt")
 }
 
+tasks.register<JavaExec>("fetchZettleTransactions") {
+    group = "application"
+    description = "Fetch and display Zettle transactions"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("io.shaka.ZettleTransactionFetcherKt")
+}
+
 // Keep run task pointing to the main sync job for backward compatibility
 tasks.named<JavaExec>("run") {
     mainClass.set("io.shaka.StripeToFreeAgentSyncKt")

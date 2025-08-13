@@ -18,10 +18,21 @@ class FreeAgentClient(
     private val baseUrl = "https://api.freeagent.com/v2"
     private val statementLens = Body.auto<FreeAgentStatement>().toLens()
 
-    fun createBankTransactions(statement: FreeAgentStatement): Response {
+    fun processStatement(freeAgentStatement: FreeAgentStatement) {
+        println("Uploading ${freeAgentStatement.size} transactions to FreeAgent...")
+        val response = createBankTransactions(freeAgentStatement)
+
+        if (response.status.successful) {
+            println("Successfully uploaded transactions to FreeAgent!")
+        } else {
+            println("Failed to upload transactions. Status: ${response.status}")
+            println("Response: ${response.bodyString()}")
+        }
+    }
+
+    private fun createBankTransactions(statement: FreeAgentStatement): Response {
         val accessToken = tokenManager.getValidAccessToken()
             ?: return Response(Status.UNAUTHORIZED).body("Failed to get valid access token")
-//        https://api.freeagent.com/v2/bank_transactions/statement?bank_account=:bank_account
         val uri = "$baseUrl/bank_transactions/statement?bank_account=$bankAccountId"
         val request = Request(POST, uri)
             .header("Authorization", "Bearer $accessToken")

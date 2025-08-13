@@ -22,7 +22,7 @@ fun main() {
     val tokenManager = TokenManager(freeAgentClientId, freeAgentClientSecret)
 
     // Fetch the list of charges (transactions)
-    val charges = stripeClient.fetchChargesFromLastDays(31, 10)
+    val charges = stripeClient.fetchChargesFromLastDays(10, 50)
 
     println("Processing ${charges.size} transactions...")
     
@@ -32,17 +32,8 @@ fun main() {
 
     // Create FreeAgent client and upload transactions
     val freeAgentClient = FreeAgentClient(tokenManager, bankAccountId)
-    
-    println("Uploading ${freeAgentStatement.size} transactions to FreeAgent...")
-    val response = freeAgentClient.createBankTransactions(freeAgentStatement)
-    
-    if (response.status.successful) {
-        println("Successfully uploaded transactions to FreeAgent!")
-    } else {
-        println("Failed to upload transactions. Status: ${response.status}")
-        println("Response: ${response.bodyString()}")
-    }
-    
+    freeAgentClient.processStatement(freeAgentStatement)
+
     // Still create CSV as backup
     val csvRows = freeAgentStatement.toFreeAgentCSVRows()
     csvRows.writeCSVToFile("output.csv")
