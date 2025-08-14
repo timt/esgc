@@ -2,8 +2,8 @@ name: Sync Stripe to FreeAgent
 
 on:
   schedule:
-    # Run daily at 9 AM UTC (adjust timezone as needed)
-    - cron: '0 7 * * *'
+    # Run daily at X UTC
+    - cron: '0 5 * * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
