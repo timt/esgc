@@ -34,35 +34,37 @@ fun List<Charge>.toFreeAgentStatement(): FreeAgentStatement {
 
 @OptIn(ExperimentalTime::class)
 fun Charge.toFreeAgentTransactions(): List<FreeAgentTransaction> {
-    val customer = Customer.retrieve(this.customer)
+    val customerName = this.customer?.let { Customer.retrieve(it).name } ?: "Unknown customer"
     val date = Instant.fromEpochSeconds(this.created)
     val dateFormatted = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         .withZone(ZoneId.systemDefault())
         .format(date.toJavaInstant())
-    val amount = BigDecimal(this.amount).movePointLeft(2) // Convert from cents to dollars
-    val description = "${this.description} - ${customer.name}"
-    val balanceTransaction = BalanceTransaction.retrieve(this.balanceTransaction)
-    val stripeFee = BigDecimal(balanceTransaction.fee).movePointLeft(2).negate()
+    val amount = BigDecimal(this.amount).movePointLeft(2)
+    val description = "${this.description} - $customerName"
 
     val transactionRow = FreeAgentTransaction(
         dated_on = dateFormatted,
         amount = amount,
         description = description,
-        fitid = this.id // Use Stripe charge ID as unique identifier
+        fitid = this.id
     )
-    val feeRow = FreeAgentTransaction(
-        dated_on = dateFormatted,
-        amount = stripeFee,
-        description = "Stripe processing fees",
-        fitid = "${this.id}_fee"
-    )
+    val feeRow = this.balanceTransaction?.let { balanceTxnId ->
+        val balanceTransaction = BalanceTransaction.retrieve(balanceTxnId)
+        val stripeFee = BigDecimal(balanceTransaction.fee).movePointLeft(2).negate()
+        FreeAgentTransaction(
+            dated_on = dateFormatted,
+            amount = stripeFee,
+            description = "Stripe processing fees",
+            fitid = "${this.id}_fee"
+        )
+    }
     val refundRows = if (this.refunded) {
         this.refunds.data.map { refund ->
             val refundDate = DateTimeFormatter.ofPattern("yyyy-MM-dd")
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.fromEpochSeconds(refund.created).toJavaInstant())
-            val refundAmount = BigDecimal(refund.amount).movePointLeft(2).negate() // Refund amount
-            val refundDescription = "Refund for ${this.description} - ${customer.name}"
+            val refundAmount = BigDecimal(refund.amount).movePointLeft(2).negate()
+            val refundDescription = "Refund for ${this.description} - $customerName"
             FreeAgentTransaction(
                 dated_on = refundDate,
                 amount = refundAmount,
@@ -73,5 +75,5 @@ fun Charge.toFreeAgentTransactions(): List<FreeAgentTransaction> {
     } else {
         emptyList<FreeAgentTransaction>()
     }
-    return (listOf(transactionRow, feeRow) + refundRows).sortedBy { it.dated_on }.reversed()
+    return (listOfNotNull(transactionRow, feeRow) + refundRows).sortedBy { it.dated_on }.reversed()
 }
