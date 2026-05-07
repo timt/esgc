@@ -21,8 +21,11 @@ fun main() {
     val stripeClient = StripeClient(stripeApiKey)
     val tokenManager = TokenManager(freeAgentClientId, freeAgentClientSecret)
 
+    val days = System.getenv("SYNC_DAYS")?.toIntOrNull() ?: 10
+    println("Fetching charges from the last $days day(s)")
+
     // Fetch the list of charges (transactions)
-    val charges = stripeClient.fetchChargesFromLastDays(10, 50)
+    val charges = stripeClient.fetchChargesFromLastDays(days, 50)
 
     println("Processing ${charges.size} transactions...")
     

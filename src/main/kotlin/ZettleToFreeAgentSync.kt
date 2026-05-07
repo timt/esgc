@@ -19,8 +19,11 @@ fun main() {
     val zettleClient = ZettleClient(ZettleTokenManager(zettleClientId, zettleApiKey))
     val freeAgentClient = FreeAgentClient(TokenManager(freeAgentClientId, freeAgentClientSecret), bankAccountId)
 
+    val days = System.getenv("SYNC_DAYS")?.toIntOrNull() ?: 10
+    println("Fetching Zettle transactions from the last $days day(s)")
+
     try {
-        val transactions = zettleClient.getTransactions()
+        val transactions = zettleClient.getTransactions(days = days)
         val freeAgentStatement = transactions.toFreeAgentStatement()
         freeAgentClient.processStatement(freeAgentStatement)
     } catch (e: Exception) {
