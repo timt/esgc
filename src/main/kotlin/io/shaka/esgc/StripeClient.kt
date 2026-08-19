@@ -27,6 +27,8 @@ class StripeClient(apiKey: String) {
             .addExpand("data.refunds")
             .build()
 
-        return Charge.list(params).data
+        return Charge.list(params).data.settledOnly()
     }
 }
+
+fun List<Charge>.settledOnly(): List<Charge> = filter { it.status == "succeeded" && it.captured == true }
